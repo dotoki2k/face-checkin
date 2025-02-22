@@ -1,38 +1,30 @@
 import cv2
 import face_recognition
 import numpy as np
-import os
 import requests
 import pytz
+import gspread
 
 from datetime import datetime
-from sheet import write_data_to_sheet
+from oauth2client.service_account import ServiceAccountCredentials
+
 
 WEBHOOK_URL = "https://discord.com/api/webhooks/1339288895250235523/NykXNA7pp_hBx3BSWp-tCVoufFCwLAmoEwauj1o_6G4tmBNz3bHwOxfYK4lJrYJaVWJO"
+SCOPE = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive",
+]
+CREDENTIALS_FILE = "./credential/gg_credential.json"
+SPREADSHEET_ID = "1BZF7FL9cjJfipse_UTmZH4xq9ihxzLV6iTY9jwYQoOw"
 VIETNAME_TZ = pytz.timezone("Asia/Ho_Chi_Minh")
+
 LIST_DETECTED = {}
 
 
-def encode_known_faces(known_faces_dir):
-    """Encode face image in folder
-
-    Args:
-        known_faces_dir (str): path folder contains image face labeled.
-
-    Returns:
-        tuple: tuple of list face encoded and list face name.
-    """
-    known_encodings = []
-    known_names = []
-    for filename in os.listdir(known_faces_dir):
-        name, _ = os.path.splitext(filename)
-        image_path = os.path.join(known_faces_dir, filename)
-        image = face_recognition.load_image_file(image_path)
-        encoding = face_recognition.face_encodings(image)
-        if encoding:
-            known_encodings.append(encoding[0])
-            known_names.append(name)
-    return known_encodings, known_names
+def connect_google_sheets():
+    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, SCOPE)
+    client = gspread.authorize(creds)
+    return client.open_by_key(SPREADSHEET_ID)
 
 
 def send_message_to_discord(message):
@@ -53,7 +45,7 @@ def send_message_to_discord(message):
         return False
 
 
-def detect_and_identify_face(frame, known_encodings, known_names):
+def detect_and_identify_face(frame, known_encodings, known_names, name_mapped_to_excel):
     """Detect and identify the face.
 
     Args:
@@ -92,7 +84,7 @@ def detect_and_identify_face(frame, known_encodings, known_names):
             if name not in LIST_DETECTED.get(date_now):
                 LIST_DETECTED[date_now].append(name)
                 now = datetime.now(VIETNAME_TZ)
-                write_data_to_sheet(name, now)
+                write_data_to_sheet(name, now, name_mapped_to_excel)
                 send_message_to_discord(
                     f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}"
                 )
@@ -102,3 +94,22 @@ def detect_and_identify_face(frame, known_encodings, known_names):
         cv2.putText(
             frame, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2
         )
+
+
+def write_data_to_sheet(name, date_time, name_mapped_to_excel):
+    col = name_mapped_to_excel.get(name, "")
+    if not col:
+        print(f"ERROR: can't write {name} to sheet.")
+        return
+    sheet = connect_google_sheets().sheet1
+    today = date_time.strftime("%Y-%m-%d %H:%M")
+    data = True
+
+    sheet_data = sheet.col_values(1)
+    if sheet_data[-1] == today:
+        row_count = len(sheet_data)
+    else:
+        row_count = len(sheet_data) + 1
+
+    sheet.update(f"A{row_count}", [[today]])
+    sheet.update(f"{col}{row_count}", [[data]])

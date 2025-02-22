@@ -3,7 +3,8 @@ import cv2
 import numpy as np
 from flask import Flask, request, render_template, jsonify
 import base64
-from handle import detect_and_identify_face, encode_known_faces
+from handle import detect_and_identify_face
+from utils import encode_known_faces
 
 app = Flask(__name__)
 face_cascade = cv2.CascadeClassifier(
@@ -11,9 +12,7 @@ face_cascade = cv2.CascadeClassifier(
 )
 
 # read and encode known face image.
-known_faces_dir = "known_faces/"
-detected_image_path = "faces/"
-known_encodings, known_names = encode_known_faces(known_faces_dir)
+known_encodings, known_names, name_mapped_to_excel = encode_known_faces("known_faces/")
 
 
 @app.route("/")
@@ -47,7 +46,7 @@ def detect_faces():
 
         # Face detection
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        detect_and_identify_face(img, known_encodings, known_names)
+        detect_and_identify_face(img, known_encodings, known_names, name_mapped_to_excel)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
         return jsonify(
