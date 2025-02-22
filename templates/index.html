@@ -1,0 +1,96 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Webcam Face Detection</title>
+    <style>
+        .container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+        }
+        #videoElement {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #canvasOverlay {
+            position: absolute;
+            left: 0;
+            top: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <video id="videoElement" width="640" height="480" autoplay></video>
+        <canvas id="canvasOverlay" width="640" height="480"></canvas>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvasOverlay');
+        const ctx = canvas.getContext('2d');
+        
+        // Access webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+                requestAnimationFrame(processVideo);
+            })
+            .catch(err => {
+                console.error('Error accessing webcam:', err);
+            });
+
+        // 
+        async function processVideo() {
+            if (video.readyState < video.HAVE_ENOUGH_DATA) {
+                requestAnimationFrame(processVideo);
+                return;
+            }
+            
+            try {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = video.videoWidth;
+                tempCanvas.height = video.videoHeight;
+                tempCanvas.getContext('2d').drawImage(video, 0, 0);
+                
+                // Use PNG format for better reliability
+                const imageData = tempCanvas.toDataURL('image/png');
+                
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    console.error('Server error:', error.error);
+                    return;
+                }
+                
+                const data = await response.json();
+                drawFaces(data.faces);
+            } catch (error) {
+                console.error('Detection error:', error);
+            }
+            
+            requestAnimationFrame(processVideo);
+        }
+        // 
+
+        function drawFaces(faces) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 2;
+            
+            faces.forEach(face => {
+                ctx.strokeRect(face.x, face.y, face.w, face.h);
+            });
+        }
+    </script>
+</body>
+</html>

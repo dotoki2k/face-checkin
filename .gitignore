@@ -1,0 +1,15 @@
+# ignore venv and idea
+/wvenv/
+.idea
+note.txt
+
+# ignore data in folder know_faces
+known_faces/*
+!known_faces/.gitkeep
+
+# ignore pycache
+__pycache__/
+
+# ignore credential
+credential/*
+!credential/.gitkeep
