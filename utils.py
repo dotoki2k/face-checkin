@@ -22,8 +22,7 @@ def encode_known_faces(known_faces_dir):
         if encoding:
             known_encodings.append(encoding[0])
             known_names.append(name)
-    name_mapped = map_names_to_excel_columns(known_names)
-    return known_encodings, known_names, name_mapped
+    return known_encodings, known_names
 
 
 def generate_excel_labels(n):
@@ -43,10 +42,4 @@ def generate_excel_labels(n):
                 break
         i += 1
 
-    return labels[:n]  # Ensure only required labels are returned
-
-
-def map_names_to_excel_columns(names):
-    """Map a list of names to Excel-style column labels."""
-    labels = generate_excel_labels(len(names))
-    return dict(zip(names, labels))
+    return labels[n - 1]

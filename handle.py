@@ -7,7 +7,7 @@ import gspread
 
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
-
+from utils import generate_excel_labels
 
 WEBHOOK_URL = "https://discord.com/api/webhooks/1339288895250235523/NykXNA7pp_hBx3BSWp-tCVoufFCwLAmoEwauj1o_6G4tmBNz3bHwOxfYK4lJrYJaVWJO"
 SCOPE = [
@@ -45,7 +45,7 @@ def send_message_to_discord(message):
         return False
 
 
-def detect_and_identify_face(frame, known_encodings, known_names, name_mapped_to_excel):
+def detect_and_identify_face(frame, known_encodings, known_names):
     """Detect and identify the face.
 
     Args:
@@ -84,7 +84,7 @@ def detect_and_identify_face(frame, known_encodings, known_names, name_mapped_to
             if name not in LIST_DETECTED.get(date_now):
                 LIST_DETECTED[date_now].append(name)
                 now = datetime.now(VIETNAME_TZ)
-                write_data_to_sheet(name, now, name_mapped_to_excel)
+                write_data_to_sheet(name, now, known_names)
                 send_message_to_discord(
                     f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}"
                 )
@@ -96,20 +96,25 @@ def detect_and_identify_face(frame, known_encodings, known_names, name_mapped_to
         )
 
 
-def write_data_to_sheet(name, date_time, name_mapped_to_excel):
-    col = name_mapped_to_excel.get(name, "")
-    if not col:
+def write_data_to_sheet(name, date_time, known_names):
+    try:
+        index = known_names.index(name) + 1
+    except ValueError:
+        index = None
+    if not index:
         print(f"ERROR: can't write {name} to sheet.")
         return
-    sheet = connect_google_sheets().sheet1
+    sheet = connect_google_sheets().worksheet("dev1")
     today = date_time.strftime("%Y-%m-%d %H:%M")
     data = True
-
-    sheet_data = sheet.col_values(1)
-    if sheet_data[-1] == today:
-        row_count = len(sheet_data)
+    date_row = sheet.row_values(1)
+    if not date_row:
+        col_index = 2
+    elif date_row[-1] == today:
+        col_index = len(date_row)
     else:
-        row_count = len(sheet_data) + 1
-
-    sheet.update(f"A{row_count}", [[today]])
-    sheet.update(f"{col}{row_count}", [[data]])
+        col_index = len(date_row) + 1
+    column_character = generate_excel_labels(col_index)
+    sheet.update(f"A{index}", [[name]])
+    sheet.update(f"{column_character}1", [[today]])
+    sheet.update(f"{column_character}{index}", [[data]])

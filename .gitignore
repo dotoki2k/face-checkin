@@ -2,6 +2,7 @@
 /wvenv/
 .idea
 note.txt
+.vscode
 
 # ignore data in folder know_faces
 known_faces/*
