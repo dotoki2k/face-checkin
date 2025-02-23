@@ -9,7 +9,7 @@ from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 from utils import generate_excel_labels
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1339288895250235523/NykXNA7pp_hBx3BSWp-tCVoufFCwLAmoEwauj1o_6G4tmBNz3bHwOxfYK4lJrYJaVWJO"
+WEBHOOK_URL = ""
 SCOPE = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive",
