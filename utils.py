@@ -4,13 +4,15 @@ import face_recognition
 
 
 def encode_known_faces(known_faces_dir):
-    """Encode face image in folder
+    """Encodes labeled face images from a specified directory.
 
     Args:
-        known_faces_dir (str): path folder contains image face labeled.
+        known_faces_dir (str): Path to the folder containing labeled face images..
 
     Returns:
-        tuple: tuple of list face encoded and list face name.
+        tuple: A tuple containing:
+            - list: Encoded face representations.
+            - list: Corresponding face names.
     """
     known_encodings = []
     known_names = []
@@ -26,7 +28,7 @@ def encode_known_faces(known_faces_dir):
 
 
 def generate_excel_labels(n):
-    """Generate Excel-style column labels up to the required number n."""
+    """Get Excel-style column labels at the index n."""
     alphabet = list(string.ascii_uppercase)
     labels = []
 

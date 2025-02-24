@@ -22,6 +22,11 @@ LIST_DETECTED = {}
 
 
 def connect_google_sheets():
+    """Connect to Google Spreadsheet.
+
+    Returns:
+        Spreadsheet: a :class:`~gspread.models.Spreadsheet` instance.
+    """
     creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, SCOPE)
     client = gspread.authorize(creds)
     return client.open_by_key(SPREADSHEET_ID)
@@ -97,6 +102,13 @@ def detect_and_identify_face(frame, known_encodings, known_names):
 
 
 def write_data_to_sheet(name, date_time, known_names):
+    """Writes data to a Google Spreadsheet.
+
+    Args:
+        name (str): The name of the identified person.
+        date_time (datetime): The date and time of identification.
+        known_names (list): A list of known names.
+    """
     try:
         index = known_names.index(name) + 1
     except ValueError:

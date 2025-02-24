@@ -22,6 +22,7 @@ def index():
 
 @app.route("/detect", methods=["POST"])
 def detect_faces():
+    """Process the image."""
     try:
         # Validate request data
         if "image" not in request.json:

@@ -55,4 +55,5 @@ python app.py
 ---
 
 Now your application is ready to use! 🚀
+
 <-- Make by Ptsy -->
