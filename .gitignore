@@ -14,3 +14,7 @@ __pycache__/
 # ignore credential
 credential/*
 !credential/.gitkeep
+
+# ignore log
+logs/*
+!logs/.gitkeep

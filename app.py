@@ -1,10 +1,12 @@
 # app.py
 import cv2
+import logging
 import numpy as np
 from flask import Flask, request, render_template, jsonify
 import base64
-from handle import detect_and_identify_face
+from handler import detect_and_identify_face
 from utils import encode_known_faces
+from logger.logger_config import setup_logging
 
 app = Flask(__name__)
 face_cascade = cv2.CascadeClassifier(
@@ -63,4 +65,7 @@ def detect_faces():
 
 
 if __name__ == "__main__":
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    logger.info("STARTING..")
     app.run(host="0.0.0.0", port=5000)

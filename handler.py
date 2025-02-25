@@ -4,12 +4,13 @@ import numpy as np
 import requests
 import pytz
 import gspread
+import logging
 
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 from utils import generate_excel_labels
 
-WEBHOOK_URL = ""
+WEBHOOK_URL = "https://discord.com/api/webhooks/1339288895250235523/NykXNA7pp_hBx3BSWp-tCVoufFCwLAmoEwauj1o_6G4tmBNz3bHwOxfYK4lJrYJaVWJO"
 SCOPE = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive",
@@ -19,6 +20,9 @@ SPREADSHEET_ID = "1BZF7FL9cjJfipse_UTmZH4xq9ihxzLV6iTY9jwYQoOw"
 VIETNAME_TZ = pytz.timezone("Asia/Ho_Chi_Minh")
 
 LIST_DETECTED = {}
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def connect_google_sheets():
@@ -93,6 +97,10 @@ def detect_and_identify_face(frame, known_encodings, known_names):
                 send_message_to_discord(
                     f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}"
                 )
+                logger.info(
+                    f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"
+                )
+                logger.debug(f"{name.upper()} hehehe")
         else:
             color = (0, 0, 255)
         cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
