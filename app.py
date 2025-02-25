@@ -67,5 +67,5 @@ def detect_faces():
 if __name__ == "__main__":
     setup_logging()
     logger = logging.getLogger(__name__)
-    logger.info("STARTING..")
+    logger.info("Face-checkin is starting..")
     app.run(host="0.0.0.0", port=5000)
