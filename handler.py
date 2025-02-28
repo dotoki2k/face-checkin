@@ -123,7 +123,8 @@ def write_data_to_sheet(name, date_time, known_names):
     if not index:
         print(f"ERROR: can't write {name} to sheet.")
         return
-    sheet = connect_google_sheets().worksheet("dev1")
+    sheet_id = "dev1"
+    sheet = connect_google_sheets().worksheet(sheet_id)
     today = date_time.strftime("%Y-%m-%d %H:%M")
     data = True
     date_row = sheet.row_values(1)
@@ -134,6 +135,15 @@ def write_data_to_sheet(name, date_time, known_names):
     else:
         col_index = len(date_row) + 1
     column_character = generate_excel_labels(col_index)
-    sheet.update(f"A{index}", [[name]])
-    sheet.update(f"{column_character}1", [[today]])
-    sheet.update(f"{column_character}{index}", [[data]])
+    try:
+        sheet.update(f"A{index}", [[name]])
+        sheet.update(f"{column_character}1", [[today]])
+        sheet.update(f"{column_character}{index}", [[data]])
+    except Exception as ex:
+        if "exceeds gird limits" in str(ex).lower():
+            # Add 5 columns and try writing data into the sheet again.
+            sheet.add_cols(5)
+            sheet.update(f"{column_character}1", [[today]])
+            sheet.update(f"{column_character}{index}", [[data]])
+        logger.error("Got an error while write data into sheet. Check the log below")
+        logger.exception(str(ex))
