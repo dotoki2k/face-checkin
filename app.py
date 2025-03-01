@@ -1,5 +1,6 @@
 # app.py
 import cv2
+import json
 import logging
 import numpy as np
 from flask import Flask, request, render_template, jsonify
@@ -99,7 +100,20 @@ def config_data():
         description: Internal server error
     """
     raw_data = request.json
-    return jsonify(data=raw_data), 200
+    webhook = raw_data.get("discord_webhook", None)
+    sheet_id = raw_data.get("google_spreadsheet", None)
+    with open("./credential/data.json", "r") as file:
+        file_data = json.load(file)
+
+    if webhook:
+        file_data["discord_webhook"] = webhook
+    if sheet_id:
+        file_data["google_spreadsheet"] = sheet_id
+        
+    with open("./credential/data.json", "w") as file:
+        json.dump(file_data, file, indent=4)
+    
+    return jsonify("Update Successful"), 200
 
 
 if __name__ == "__main__":

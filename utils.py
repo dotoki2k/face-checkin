@@ -1,4 +1,5 @@
 import os
+import json
 import string
 import face_recognition
 
@@ -45,3 +46,9 @@ def generate_excel_labels(n):
         i += 1
 
     return labels[n - 1]
+
+
+def get_data_in_data_json():
+    with open("./credential/data.json") as f:
+        data = json.load(f)
+    return data
