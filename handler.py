@@ -11,7 +11,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from utils import generate_excel_labels, get_data_in_data_json
 
 
-
 SCOPE = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive",
@@ -27,7 +26,7 @@ logger.setLevel(logging.DEBUG)
 
 def connect_google_sheets(spread_sheet_id):
     """Connect to Google Spreadsheet.
-    
+
     Args:
         spread_sheet_id (str): Spread sheet id.
     Returns:
@@ -44,7 +43,7 @@ def send_message_to_discord(message, webhook_url):
     Args:
         message (str): Message content.
         webhook_url (str): Discord webhook url.
-        
+
 
     Returns:
         bool: return True if send the message successfully else False.
@@ -103,7 +102,7 @@ def detect_and_identify_face(frame, known_encodings, known_names):
                 write_data_to_sheet(name, now, known_names, spread_sheet_id)
                 send_message_to_discord(
                     f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}",
-                    webhook_url
+                    webhook_url,
                 )
                 logger.info(
                     f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"

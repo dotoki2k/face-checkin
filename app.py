@@ -23,17 +23,12 @@ known_encodings, known_names = encode_known_faces("known_faces/")
 
 @app.route("/")
 def index():
-    """
-    Home route
-    """
     return render_template("index.html")
 
 
 @app.route("/detect", methods=["POST"])
 def detect_faces():
-    """
-    Detect faces in an uploaded image
-    """
+    """Process the image."""
     try:
         # Validate request data
         if "image" not in request.json:
@@ -109,10 +104,10 @@ def config_data():
         file_data["discord_webhook"] = webhook
     if sheet_id:
         file_data["google_spreadsheet"] = sheet_id
-        
+
     with open("./credential/data.json", "w") as file:
         json.dump(file_data, file, indent=4)
-    
+
     return jsonify("Update Successful"), 200
 
 
