@@ -2,14 +2,14 @@
 import cv2
 import json
 import logging
-import numpy as np
-from flask import Flask, request, render_template, jsonify
-from flasgger import Swagger
-
 import base64
-from handler import detect_and_identify_face
+import numpy as np
+
+from flasgger import Swagger
 from utils import encode_known_faces
+from handler import detect_and_identify_face
 from logger.logger_config import setup_logging
+from flask import Flask, request, render_template, jsonify
 
 app = Flask(__name__)
 swagger = Swagger(app)
