@@ -3,12 +3,15 @@ import cv2
 import logging
 import numpy as np
 from flask import Flask, request, render_template, jsonify
+from flasgger import Swagger
+
 import base64
 from handler import detect_and_identify_face
 from utils import encode_known_faces
 from logger.logger_config import setup_logging
 
 app = Flask(__name__)
+swagger = Swagger(app)
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
@@ -19,12 +22,17 @@ known_encodings, known_names = encode_known_faces("known_faces/")
 
 @app.route("/")
 def index():
+    """
+    Home route
+    """
     return render_template("index.html")
 
 
 @app.route("/detect", methods=["POST"])
 def detect_faces():
-    """Process the image."""
+    """
+    Detect faces in an uploaded image
+    """
     try:
         # Validate request data
         if "image" not in request.json:
@@ -64,8 +72,38 @@ def detect_faces():
         return jsonify(error="Internal server error"), 500
 
 
+@app.route("/config", methods=["POST"])
+def config_data():
+    """
+    Config data for Face-Checkin application.
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                discord_webhook:
+                    type: string
+                    description: The Discord webhook link to send notifications.
+                google_spreadsheet:
+                    type: string
+                    description: The Google spreadsheet link to write record.
+    responses:
+      200:
+        description: Configured the data for Face-Checkin application.
+      400:
+        description: Invalid input (e.g., no file provided)
+      500:
+        description: Internal server error
+    """
+    raw_data = request.json
+    return jsonify(data=raw_data), 200
+
+
 if __name__ == "__main__":
     setup_logging()
     logger = logging.getLogger(__name__)
     logger.info("Face-checkin is starting..")
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
