@@ -49,10 +49,16 @@ def generate_excel_labels(n):
 
 
 def get_data_in_data_json():
-    """Get data from file data.json
+    """
+    Retrieves data from 'data.json' located in the 'credential' directory.
+
+    If the file does not exist, it is created with an empty JSON object (`{}`),
+    and an empty dictionary is returned. Otherwise, the function reads and
+    returns the JSON content as a Python dictionary.
 
     Returns:
-        dict: data with dictionary format.
+        dict: The parsed JSON data from 'data.json'. Returns an empty
+              dictionary if the file is newly created or empty.
     """
     data_path = "./credential/data.json"
     if not os.path.exists(data_path):
