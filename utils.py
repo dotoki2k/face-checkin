@@ -49,6 +49,16 @@ def generate_excel_labels(n):
 
 
 def get_data_in_data_json():
-    with open("./credential/data.json") as f:
+    """Get data from file data.json
+
+    Returns:
+        dict: data with dictionary format.
+    """
+    data_path = "./credential/data.json"
+    if not os.path.exists(data_path):
+        with open(data_path, "w") as file:
+            file.write("{}")
+        return {}
+    with open(data_path, "r") as f:
         data = json.load(f)
     return data

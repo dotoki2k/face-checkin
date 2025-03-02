@@ -96,17 +96,20 @@ def detect_and_identify_face(frame, known_encodings, known_names):
             if name not in LIST_DETECTED.get(date_now):
                 LIST_DETECTED[date_now].append(name)
                 now = datetime.now(VIETNAME_TZ)
-                data = get_data_in_data_json()
-                webhook_url = data.get("discord_webhook")
-                spread_sheet_id = data.get("google_spreadsheet")
-                write_data_to_sheet(name, now, known_names, spread_sheet_id)
-                send_message_to_discord(
-                    f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}",
-                    webhook_url,
-                )
-                logger.info(
-                    f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"
-                )
+                try:
+                    data = get_data_in_data_json()
+                    webhook_url = data.get("discord_webhook")
+                    spread_sheet_id = data.get("google_spreadsheet")
+                    write_data_to_sheet(name, now, known_names, spread_sheet_id)
+                    send_message_to_discord(
+                        f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                        webhook_url,
+                    )
+                    logger.info(
+                        f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"
+                    )
+                except Exception as ex:
+                    logger.exception(str(ex))
         else:
             color = (0, 0, 255)
         cv2.rectangle(frame, (left, top), (right, bottom), color, 2)

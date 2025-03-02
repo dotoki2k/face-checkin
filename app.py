@@ -6,7 +6,7 @@ import base64
 import numpy as np
 
 from flasgger import Swagger
-from utils import encode_known_faces
+from utils import encode_known_faces, get_data_in_data_json
 from handler import detect_and_identify_face
 from logger.logger_config import setup_logging
 from flask import Flask, request, render_template, jsonify
@@ -97,9 +97,7 @@ def config_data():
     raw_data = request.json
     webhook = raw_data.get("discord_webhook", None)
     sheet_id = raw_data.get("google_spreadsheet", None)
-    with open("./credential/data.json", "r") as file:
-        file_data = json.load(file)
-
+    file_data = get_data_in_data_json()
     if webhook:
         file_data["discord_webhook"] = webhook
     if sheet_id:
@@ -115,4 +113,4 @@ if __name__ == "__main__":
     setup_logging()
     logger = logging.getLogger(__name__)
     logger.info("Face-checkin is starting..")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
