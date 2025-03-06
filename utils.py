@@ -68,3 +68,8 @@ def get_data_in_data_json():
     with open(data_path, "r") as f:
         data = json.load(f)
     return data
+
+
+def write_roll_call_to_file(msg):
+    with open("./logs/roll_call.txt", "w", encoding="utf-8") as f:
+        f.writelines(msg)
