@@ -1,4 +1,3 @@
-import json
 import logging.config
 import logging.handlers
 from pathlib import Path

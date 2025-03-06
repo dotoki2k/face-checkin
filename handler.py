@@ -8,15 +8,14 @@ import logging
 
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
-from utils import generate_excel_labels
+from utils import generate_excel_labels, get_data_in_data_json
 
-WEBHOOK_URL = ""
+
 SCOPE = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive",
 ]
 CREDENTIALS_FILE = "./credential/gg_credential.json"
-SPREADSHEET_ID = "1BZF7FL9cjJfipse_UTmZH4xq9ihxzLV6iTY9jwYQoOw"
 VIETNAME_TZ = pytz.timezone("Asia/Ho_Chi_Minh")
 
 LIST_DETECTED = {}
@@ -25,29 +24,33 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def connect_google_sheets():
+def connect_google_sheets(spread_sheet_id):
     """Connect to Google Spreadsheet.
 
+    Args:
+        spread_sheet_id (str): Spread sheet id.
     Returns:
         Spreadsheet: a :class:`~gspread.models.Spreadsheet` instance.
     """
     creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, SCOPE)
     client = gspread.authorize(creds)
-    return client.open_by_key(SPREADSHEET_ID)
+    return client.open_by_key(spread_sheet_id)
 
 
-def send_message_to_discord(message):
+def send_message_to_discord(message, webhook_url):
     """Send message to discord.
 
     Args:
-        message (str): message content.
+        message (str): Message content.
+        webhook_url (str): Discord webhook url.
+
 
     Returns:
         bool: return True if send the message successfully else False.
     """
 
     data = {"content": message}
-    response = requests.post(WEBHOOK_URL, json=data)
+    response = requests.post(webhook_url, json=data)
     if response.status_code == 204:
         return True
     else:
@@ -93,13 +96,20 @@ def detect_and_identify_face(frame, known_encodings, known_names):
             if name not in LIST_DETECTED.get(date_now):
                 LIST_DETECTED[date_now].append(name)
                 now = datetime.now(VIETNAME_TZ)
-                write_data_to_sheet(name, now, known_names)
-                send_message_to_discord(
-                    f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}"
-                )
-                logger.info(
-                    f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"
-                )
+                try:
+                    data = get_data_in_data_json()
+                    webhook_url = data.get("discord_webhook")
+                    spread_sheet_id = data.get("google_spreadsheet")
+                    write_data_to_sheet(name, now, known_names, spread_sheet_id)
+                    send_message_to_discord(
+                        f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                        webhook_url,
+                    )
+                    logger.info(
+                        f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"
+                    )
+                except Exception as ex:
+                    logger.exception(str(ex))
         else:
             color = (0, 0, 255)
         cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
@@ -108,13 +118,14 @@ def detect_and_identify_face(frame, known_encodings, known_names):
         )
 
 
-def write_data_to_sheet(name, date_time, known_names):
+def write_data_to_sheet(name, date_time, known_names, spread_sheet_id):
     """Writes data to a Google Spreadsheet.
 
     Args:
         name (str): The name of the identified person.
         date_time (datetime): The date and time of identification.
         known_names (list): A list of known names.
+        spread_sheet_id (str): Spread sheet id.
     """
     try:
         index = known_names.index(name) + 1
@@ -124,7 +135,7 @@ def write_data_to_sheet(name, date_time, known_names):
         print(f"ERROR: can't write {name} to sheet.")
         return
     sheet_id = "dev1"
-    sheet = connect_google_sheets().worksheet(sheet_id)
+    sheet = connect_google_sheets(spread_sheet_id).worksheet(sheet_id)
     today = date_time.strftime("%Y-%m-%d %H:%M")
     data = True
     date_row = sheet.row_values(1)
@@ -140,10 +151,11 @@ def write_data_to_sheet(name, date_time, known_names):
         sheet.update(f"{column_character}1", [[today]])
         sheet.update(f"{column_character}{index}", [[data]])
     except Exception as ex:
-        if "exceeds gird limits" in str(ex).lower():
+        if "exceeds grid limits" in str(ex).lower():
             # Add 5 columns and try writing data into the sheet again.
             sheet.add_cols(5)
             sheet.update(f"{column_character}1", [[today]])
             sheet.update(f"{column_character}{index}", [[data]])
+            return
         logger.error("Got an error while write data into sheet. Check the log below")
         logger.exception(str(ex))

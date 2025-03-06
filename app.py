@@ -1,14 +1,18 @@
 # app.py
 import cv2
+import json
 import logging
-import numpy as np
-from flask import Flask, request, render_template, jsonify
 import base64
+import numpy as np
+
+from flasgger import Swagger
+from utils import encode_known_faces, get_data_in_data_json
 from handler import detect_and_identify_face
-from utils import encode_known_faces
 from logger.logger_config import setup_logging
+from flask import Flask, request, render_template, jsonify
 
 app = Flask(__name__)
+swagger = Swagger(app)
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
@@ -62,6 +66,47 @@ def detect_faces():
     except Exception as e:
         app.logger.error(f"Detection error: {str(e)}")
         return jsonify(error="Internal server error"), 500
+
+
+@app.route("/config", methods=["POST"])
+def config_data():
+    """
+    Config data for Face-Checkin application.
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                discord_webhook:
+                    type: string
+                    description: The Discord webhook link to send notifications.
+                google_spreadsheet:
+                    type: string
+                    description: The Google spreadsheet link to write record.
+    responses:
+      200:
+        description: Configured the data for Face-Checkin application.
+      400:
+        description: Invalid input (e.g., no file provided)
+      500:
+        description: Internal server error
+    """
+    raw_data = request.json
+    webhook = raw_data.get("discord_webhook", None)
+    sheet_id = raw_data.get("google_spreadsheet", None)
+    file_data = get_data_in_data_json()
+    if webhook:
+        file_data["discord_webhook"] = webhook
+    if sheet_id:
+        file_data["google_spreadsheet"] = sheet_id
+
+    with open("./credential/data.json", "w") as file:
+        json.dump(file_data, file, indent=4)
+
+    return jsonify("Update Successful"), 200
 
 
 if __name__ == "__main__":

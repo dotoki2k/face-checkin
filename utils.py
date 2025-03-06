@@ -1,4 +1,5 @@
 import os
+import json
 import string
 import face_recognition
 
@@ -45,3 +46,25 @@ def generate_excel_labels(n):
         i += 1
 
     return labels[n - 1]
+
+
+def get_data_in_data_json():
+    """
+    Retrieves data from 'data.json' located in the 'credential' directory.
+
+    If the file does not exist, it is created with an empty JSON object (`{}`),
+    and an empty dictionary is returned. Otherwise, the function reads and
+    returns the JSON content as a Python dictionary.
+
+    Returns:
+        dict: The parsed JSON data from 'data.json'. Returns an empty
+              dictionary if the file is newly created or empty.
+    """
+    data_path = "./credential/data.json"
+    if not os.path.exists(data_path):
+        with open(data_path, "w") as file:
+            file.write("{}")
+        return {}
+    with open(data_path, "r") as f:
+        data = json.load(f)
+    return data
