@@ -8,7 +8,7 @@ import logging
 
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
-from utils import generate_excel_labels, get_data_in_data_json
+from utils import generate_excel_labels, get_data_in_data_json, write_roll_call_to_file
 
 
 SCOPE = [
@@ -100,11 +100,13 @@ def detect_and_identify_face(frame, known_encodings, known_names):
                     data = get_data_in_data_json()
                     webhook_url = data.get("discord_webhook")
                     spread_sheet_id = data.get("google_spreadsheet")
+                    msg = f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}"
                     write_data_to_sheet(name, now, known_names, spread_sheet_id)
                     send_message_to_discord(
-                        f"{name.upper()} đã điểm danh lúc {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                        msg,
                         webhook_url,
                     )
+                    write_roll_call_to_file(msg)
                     logger.info(
                         f"{name.upper()} counted at: ({now.strftime('%Y-%m-%d %H:%M:%S')})"
                     )
