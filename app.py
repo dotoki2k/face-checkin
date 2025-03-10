@@ -109,6 +109,25 @@ def config_data():
     return jsonify("Update Successful"), 200
 
 
+@app.route("/showdata", methods=["GET"])
+def show_data():
+    """
+    Get data the roll call log from file.
+    ---
+    responses:
+      200:
+        description: Successfully.
+      400:
+        description: Invalid input (e.g., no file provided).
+      500:
+        description: Internal server error.
+    """
+    with open("./logs/roll_call.txt", "r", encoding="utf-8") as file:
+        data = file.read()
+
+    return jsonify({"count": len(data), "entries": data}), 200
+
+
 if __name__ == "__main__":
     setup_logging()
     logger = logging.getLogger(__name__)
